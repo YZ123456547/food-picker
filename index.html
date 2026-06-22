@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#E85D3A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="食选" />
+  <meta name="description" content="今天吃什么？让食选帮你决定" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <title>食选 - 今天吃什么</title>
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1><span>食</span>选</h1>
+      <div class="header-actions">
+        <button class="header-btn" id="reset-btn" title="重置筛选">↺</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Home View -->
+      <div class="view active" id="view-home">
+        <!-- Category filters -->
+        <div class="filter-bar" id="category-bar"></div>
+        <!-- Price filters -->
+        <div class="filter-row" id="price-bar"></div>
+        <!-- Distance filters -->
+        <div class="filter-row" id="dist-bar"></div>
+
+        <div class="spin-area">
+          <div class="spin-btn-wrapper">
+            <div class="spin-ring s1"></div>
+            <div class="spin-ring s2"></div>
+            <div class="spin-ring s3"></div>
+            <button class="spin-btn" id="spin-btn">
+              摇一摇
+              <span class="sub">决定今天吃什么</span>
+            </button>
+          </div>
+          <div class="slot-text" id="slot-text">👆 点击开始</div>
+        </div>
+
+        <!-- Result Card -->
+        <div class="result-card" id="result-card">
+          <div class="result-card-header">
+            <div>
+              <div class="result-name" id="r-name"></div>
+              <div class="result-badges" id="r-badges"></div>
+            </div>
+          </div>
+          <div class="result-description" id="r-desc"></div>
+          <div class="result-rating">
+            <span class="stars" id="r-stars"></span>
+            <span id="r-rating-num"></span>
+          </div>
+          <div class="result-actions">
+            <button class="btn-primary" id="r-retry-btn">↻ 换一个</button>
+            <button class="btn-fav" id="r-fav-btn">♡ 收藏</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explore View -->
+      <div class="view" id="view-explore">
+        <div class="explore-header" id="explore-count"></div>
+        <div class="item-grid" id="explore-grid"></div>
+      </div>
+
+      <!-- Favorites View -->
+      <div class="view" id="view-favorites">
+        <div class="explore-header">❤️ 我的收藏</div>
+        <div class="item-grid" id="favs-list"></div>
+      </div>
+
+      <!-- History View -->
+      <div class="view" id="view-history">
+        <div class="explore-header">🕐 摇过的记录</div>
+        <div class="item-grid" id="hist-list"></div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1"/></svg>
+        <span>摇一摇</span>
+      </button>
+      <button class="nav-item" data-tab="explore">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>浏览</span>
+      </button>
+      <button class="nav-item" data-tab="favorites">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        <span>收藏</span>
+      </button>
+      <button class="nav-item" data-tab="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>历史</span>
+      </button>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script src="src/app.js"></script>
+</body>
+</html>

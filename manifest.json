@@ -1,0 +1,13 @@
+﻿{
+  "name": "食选 - 今天吃什么",
+  "short_name": "食选",
+  "description": "随机帮你决定今天吃什么",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#E85D3A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
