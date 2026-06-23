@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>食选 - 管理后台</title>
+  <style>
+    :root {
+      --primary: #E85D3A;
+      --bg: #FAF8F5;
+      --surface: #FFFFFF;
+      --text: #1A1A2E;
+      --border: #E5E7EB;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, "PingFang SC", sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 22px; margin-bottom: 20px; }
+    h1 span { color: var(--primary); }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tab { padding: 8px 20px; border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; background: var(--surface); cursor: pointer; font-size: 14px; }
+    .tab.active { border-bottom-color: var(--surface); font-weight: 600; color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--bg); font-weight: 600; position: sticky; top: 0; }
+    .actions { display: flex; gap: 4px; }
+    .actions button { padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); cursor: pointer; font-size: 12px; }
+    .actions .del { color: #E74C3C; border-color: #E74C3C; }
+    .actions .edit { color: var(--primary); border-color: var(--primary); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    label { font-size: 12px; font-weight: 600; color: #6B7280; display: block; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+    textarea { resize: vertical; min-height: 60px; }
+    .btn { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:disabled { opacity: 0.5; }
+
+    .import-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 30px; text-align: center; color: #9CA3AF; margin-bottom: 16px; }
+    .import-area textarea { min-height: 150px; margin-top: 10px; }
+
+    .stats { display: flex; gap: 20px; margin-bottom: 16px; }
+    .stat { font-size: 13px; color: var(--text); }
+    .stat strong { font-size: 20px; color: var(--primary); }
+
+    .search-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .search-bar input { flex: 1; }
+
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: white; padding: 10px 20px; border-radius: 6px; font-size: 13px; opacity: 0; transition: all 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+
+    #bulk-template { font-size: 12px; color: #6B7280; margin: 8px 0; }
+    #bulk-template code { background: var(--bg); padding: 2px 6px; border-radius: 3px; }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .stats { flex-wrap: wrap; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><span>食</span>选 管理后台</h1>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="list">餐厅列表</div>
+      <div class="tab" data-tab="add">添加餐厅</div>
+      <div class="tab" data-tab="import">批量导入</div>
+    </div>
+
+    <!-- 列表 -->
+    <div class="tab-content active" id="tab-list">
+      <div class="panel">
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="搜索餐厅名称..." />
+          <select id="category-filter">
+            <option value="all">全部分类</option>
+            <option value="chinese">中餐</option>
+            <option value="japanese">日料</option>
+            <option value="western">西餐</option>
+            <option value="korean">韩餐</option>
+            <option value="southeast">东南亚</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>名称</th><th>分类</th><th>价格</th><th>距离</th><th>评分</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="items-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加 -->
+    <div class="tab-content" id="tab-add">
+      <div class="panel">
+        <form id="add-form" class="form-grid">
+          <div><label>餐厅名称 *</label><input type="text" id="f-name" required /></div>
+          <div><label>分类 *</label>
+            <select id="f-category">
+              <option value="chinese">中餐</option>
+              <option value="japanese">日料</option>
+              <option value="western">西餐</option>
+              <option value="korean">韩餐</option>
+              <option value="southeast">东南亚</option>
+            </select>
+          </div>
+          <div><label>价格等级</label>
+            <select id="f-price">
+              <option value="1">$ 实惠</option>
+              <option value="2" selected>$$ 适中</option>
+              <option value="3">$$$ 精致</option>
+            </select>
+          </div>
+          <div><label>距离</label><input type="text" id="f-distance" value="1km" placeholder="如: 500m, 1.2km" /></div>
+          <div><label>评分</label><input type="number" id="f-rating" value="4.0" min="0" max="5" step="0.1" /></div>
+          <div><label>标签 (逗号分隔)</label><input type="text" id="f-tags" placeholder="如: 火锅,服务好" /></div>
+          <div class="full"><label>描述</label><textarea id="f-desc" placeholder="简短介绍这家店..."></textarea></div>
+          <div class="full">
+            <input type="hidden" id="edit-id" value="" />
+            <button type="submit" class="btn btn-primary" id="submit-btn">添加餐厅</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 批量导入 -->
+    <div class="tab-content" id="tab-import">
+      <div class="panel">
+        <div class="import-area">
+          <p style="margin-bottom:8px;">粘贴批量数据，每行一条 JSON</p>
+          <div id="bulk-template">格式: <code>{"name":"店名","category":"chinese","priceLevel":2,"distance":"1km","tags":"标签1,标签2","description":"介绍","rating":4.0}</code></div>
+          <textarea id="bulk-text" placeholder='{"name":"新店A","category":"chinese","priceLevel":2,"distance":"800m","tags":"川菜,辣","description":"好吃的川菜馆","rating":4.2}'></textarea>
+        </div>
+        <button class="btn btn-primary" id="bulk-btn">导入数据</button>
+        <p id="bulk-result" style="margin-top:8px;font-size:13px;"></p>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    const API = "/api/items";
+    let items = [];
+    let editingId = null;
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    async function fetchItems() {
+      const res = await fetch(API);
+      const data = await res.json();
+      items = data.items;
+      renderTable();
+      updateStats();
+    }
+
+    function updateStats() {
+      document.getElementById("stats").innerHTML = `
+        <div class="stat">共 <strong>${items.length}</strong> 家餐厅</div>
+      `;
+    }
+
+    const CAT_LABELS = { chinese: "中餐", japanese: "日料", western: "西餐", korean: "韩餐", southeast: "东南亚" };
+
+    function renderTable() {
+      const search = (document.getElementById("search-input").value || "").toLowerCase();
+      const catFilter = document.getElementById("category-filter").value;
+
+      let filtered = items;
+      if (search) filtered = filtered.filter((i) => i.name.toLowerCase().includes(search));
+      if (catFilter !== "all") filtered = filtered.filter((i) => i.category === catFilter);
+
+      const tbody = document.getElementById("items-tbody");
+      tbody.innerHTML = filtered.map((item) => {
+        const priceStr = "$".repeat(item.priceLevel);
+        const catLabel = CAT_LABELS[item.category] || item.category;
+        return "<tr>" +
+          "<td>" + item.id + "</td>" +
+          "<td><strong>" + item.name + "</strong></td>" +
+          "<td>" + catLabel + "</td>" +
+          "<td>" + priceStr + "</td>" +
+          "<td>" + item.distance + "</td>" +
+          "<td>★ " + item.rating + "</td>" +
+          '<td class="actions">' +
+          '<button class="edit" onclick="editItem(' + item.id + ')">编辑</button>' +
+          '<button class="del" onclick="deleteItem(' + item.id + ')">删除</button>' +
+          "</td></tr>";
+      }).join("");
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:30px;">没有找到匹配的餐厅</td></tr>';
+      }
+    }
+
+    document.getElementById("search-input").addEventListener("input", renderTable);
+    document.getElementById("category-filter").addEventListener("change", renderTable);
+
+    async function deleteItem(id) {
+      if (!confirm("确定要删除这条记录吗？")) return;
+      await fetch(API + "/" + id, { method: "DELETE" });
+      showToast("已删除");
+      fetchItems();
+    }
+
+    function editItem(id) {
+      const item = items.find((i) => i.id === id);
+      if (!item) return;
+      editingId = id;
+      document.getElementById("f-name").value = item.name;
+      document.getElementById("f-category").value = item.category;
+      document.getElementById("f-price").value = item.priceLevel;
+      document.getElementById("f-distance").value = item.distance;
+      document.getElementById("f-rating").value = item.rating;
+      document.getElementById("f-tags").value = item.tags || "";
+      document.getElementById("f-desc").value = item.description || "";
+      document.getElementById("submit-btn").textContent = "保存修改";
+      document.getElementById("edit-id").value = id;
+      // Switch to add tab
+      document.querySelectorAll(".tab")[1].click();
+    }
+
+    document.getElementById("add-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = {
+        name: document.getElementById("f-name").value.trim(),
+        category: document.getElementById("f-category").value,
+        priceLevel: parseInt(document.getElementById("f-price").value),
+        distance: document.getElementById("f-distance").value.trim() || "1km",
+        rating: parseFloat(document.getElementById("f-rating").value) || 4.0,
+        tags: document.getElementById("f-tags").value.trim(),
+        description: document.getElementById("f-desc").value.trim(),
+      };
+
+      if (editingId) {
+        await fetch(API + "/" + editingId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        showToast("修改已保存");
+        editingId = null;
+        document.getElementById("submit-btn").textContent = "添加餐厅";
+        document.getElementById("edit-id").value = "";
+      } else {
+        const res = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const data = await res.json();
+        showToast("添加成功 (ID: " + data.id + ")");
+      }
+
+      document.getElementById("add-form").reset();
+      document.getElementById("f-category").value = "chinese";
+      document.getElementById("f-price").value = "2";
+      document.getElementById("f-rating").value = "4.0";
+      document.getElementById("f-distance").value = "1km";
+      fetchItems();
+    });
+
+    document.getElementById("bulk-btn").addEventListener("click", async () => {
+      const text = document.getElementById("bulk-text").value.trim();
+      if (!text) { showToast("请先粘贴数据"); return; }
+
+      let items;
+      try {
+        items = JSON.parse("[" + text.replace(/}\s*{/g, "},{") + "]");
+      } catch {
+        // Try line by line
+        const lines = text.split("\n").filter(Boolean);
+        items = lines.map((l) => JSON.parse(l.trim()));
+      }
+
+      if (!Array.isArray(items) || items.length === 0) {
+        showToast("数据格式有误");
+        return;
+      }
+
+      document.getElementById("bulk-btn").disabled = true;
+      document.getElementById("bulk-btn").textContent = "导入中...";
+
+      const res = await fetch(API + "/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      const data = await res.json();
+
+      document.getElementById("bulk-result").textContent = data.message || data.error;
+      document.getElementById("bulk-btn").disabled = false;
+      document.getElementById("bulk-btn").textContent = "导入数据";
+      document.getElementById("bulk-text").value = "";
+      fetchItems();
+    });
+
+    // Tab switching
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    fetchItems();
+  </script>
+</body>
+</html>

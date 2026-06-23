@@ -1,4 +1,4 @@
-﻿// ============= DATA =============
+// ============= DATA =============
 const CATEGORIES = [
   { id: "all", label: "全部", icon: "🍽️" },
   { id: "chinese", label: "中餐", icon: "🥟" },
@@ -22,7 +22,7 @@ const DISTANCE_OPTIONS = [
   { id: 5, label: "5km" },
 ];
 
-const ITEMS = [
+let ITEMS = [
   { id: 1, name: "外婆家", category: "chinese", priceLevel: 2, distance: "1.2km", tags: ["杭帮菜", "家常", "排队王"], description: "经典杭帮菜，性价比高，招牌红烧肉和茶香鸡必点", rating: 4.3 },
   { id: 2, name: "鼎泰丰", category: "chinese", priceLevel: 3, distance: "3.5km", tags: ["小笼包", "米其林", "精致"], description: "米其林星级小笼包，蟹粉小笼和排骨蛋炒饭是招牌", rating: 4.6 },
   { id: 3, name: "海底捞", category: "chinese", priceLevel: 3, distance: "800m", tags: ["火锅", "服务好", "热闹"], description: "以极致服务著称的火锅店，番茄锅底和捞面必体验", rating: 4.5 },
@@ -445,12 +445,24 @@ function renderHist() {
 }
 
 // ============= INIT =============
-renderFilters();
-renderExplore();
-renderFavs();
-renderHist();
+async function initApp() {
+  try {
+    const res = await fetch("/api/items");
+    const data = await res.json();
+    if (data.items && data.items.length > 0) {
+      ITEMS.length = 0;
+      ITEMS.push(...data.items);
+    }
+  } catch (e) {
+    console.log("API not available, using local data");
+  }
+  renderFilters();
+  renderExplore();
+  renderFavs();
+  renderHist();
+}
+initApp();
 
-// Register service worker if available
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }

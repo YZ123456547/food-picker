@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">食选</string>
+    <string name="title_activity_main">食选</string>
+    <string name="package_name">com.foodpicker.app</string>
+    <string name="custom_url_scheme">com.foodpicker.app</string>
+</resources>
