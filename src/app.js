@@ -495,7 +495,3 @@ async function initApp() {
   renderHist();
 }
 initApp();
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
